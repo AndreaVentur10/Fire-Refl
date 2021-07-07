@@ -1,0 +1,23 @@
+
+Python version  : 3.7.7
+Order of installation:
+
+
+############## 1.GDAL ##############
+conda install gdal
+
+############ 2.Rasterio ############
+conda install rasterio
+
+############ 3.Rasterio ############
+conda install -c conda-forge fiona
+
+############ 4.Fiona ############
+conda install -c anaconda scikit-learn
+
+############ 5.Pandas ############
+conda install -c anaconda pandas
+
+############ 6.netcdf4 ############
+conda install -c anaconda netcdf4
+
