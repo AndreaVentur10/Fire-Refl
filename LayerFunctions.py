@@ -88,11 +88,8 @@ def get_mask(band_data, bit_pos, bit_len, value):
     if type(value) == str:
         value = int(value, 2)
     pos_value = bitlen << bit_pos
-    print(pos_value)
     con_value = value << bit_pos
-    print(con_value)
     mask = (band_data & pos_value) == con_value
-    print(mask)
     return mask.astype(int)
 
 
@@ -105,8 +102,6 @@ def terra_mask(year, idx_row, path, tile):
         tile : synergy tile
     '''
     date = doy2date(year, int(idx_row)).strftime("%Y%m%d")
-    #mod_refl = get_reflectance_layer_tiff(os.path.join(path, 'sur_refl_b02_1/MOD09GQ_sur_refl_b02_1_{tile}_{date}_nearest_wgs84.tif'.format(tile=tile, date=date)))
-    #qc_mod = get_layer_tiff(os.path.join(path, 'QC_250m_1/MOD09GQ_QC_250m_1_{tile}_{date}_nearest_wgs84.tif').format(tile=tile, date=date)) # nir
     qc_mod = get_layer_tiff(
         os.path.join(path, 'QC_500m_1/MOD09GA_QC_500m_1_{tile}_{date}_nearest_wgs84.tif').format(tile=tile, date=date))
     qa_mod = get_layer_tiff(os.path.join(path, 'state_1km_1/MOD09GA_state_1km_1_{tile}_{date}_nearest_wgs84.tif').format(tile=tile, date=date))
@@ -139,8 +134,6 @@ def aqua_mask(year, idx_row, path, tile):
         tile : synergy tile
     '''
     date = doy2date(year, int(idx_row)).strftime("%Y%m%d")
-    #myd_refl = get_reflectance_layer_tiff(os.path.join(MODIS_PATH, 'sur_refl_b02_1/MYD09GQ_sur_refl_b02_1_{tile}_{date}_nearest_wgs84.tif'.format(tile=tile, date=date)))
-    #qc_myd = get_layer_tiff(os.path.join(path, 'QC_250m_1/MYD09GQ_QC_250m_1_{tile}_{date}_nearest_wgs84.tif').format(tile=tile, date=date))
     qc_myd = get_layer_tiff(
         os.path.join(path, 'QC_500m_1/MYD09GA_QC_500m_1_{tile}_{date}_nearest_wgs84.tif').format(tile=tile, date=date))
     qa_myd = get_layer_tiff(os.path.join(path, 'state_1km_1/MYD09GA_state_1km_1_{tile}_{date}_nearest_wgs84.tif').format(tile=tile, date=date))
@@ -161,35 +154,6 @@ def aqua_mask(year, idx_row, path, tile):
     mask_myd = mask_myd > 0
 
     return mask_myd
-
-def olci_mask(year, idx_row, path, tile):
-    '''
-    Generate mask with high quality pixels of a day for olci images
-    Parameters
-        idx_row : Day of the year
-        path : location of modis reprojected images
-        tile : synergy tile
-    '''    
-    date = doy2date(year, int(idx_row)).strftime("%Y%m%d")
-    print("olci_mask : date")
-    s3_filename = 'SY_2_SYN-L3-P1D-{tile}-{date}-1.7.nc'.format(tile=tile, date=date)
-
-    s3_ds = nc4.Dataset(os.path.join(path, s3_filename))
-    s3_olci_refl = s3_ds['SDR_Oa17'][:]
-
-
-    olci_flags = s3_ds['OLC_flags'][:] 
-
-    sln_flags = s3_ds['SLN_flags'][:] 
-                
-    cloud_flags = s3_ds['CLOUD_flags'][:] 
-                
-    mask = (cloud_flags != 0)# & (olci_flags >= 2**9) & (syn_flags)
-    mask_olci = np.zeros(s3_olci_refl.shape, dtype=np.uint8)
-    mask_olci = ~np.isnan(s3_olci_refl)
-
-    return mask_olci
-
 
 def slstr_mask(year, idx_row, path, tile):
     '''

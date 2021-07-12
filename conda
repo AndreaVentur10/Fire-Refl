@@ -21,3 +21,5 @@ conda install -c anaconda pandas
 ############ 6.netcdf4 ############
 conda install -c anaconda netcdf4
 
+All is in the "environment.yml" file
+

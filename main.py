@@ -16,7 +16,7 @@ from BRDFFunctions import *
 ####################################################################
 ''' - - - - - - - - - input parameter path - - - - - - - - - - -'''
 ####################################################################
-MY_PATH = "/home/andrea/Desktop/BA_R/"
+MY_PATH = "/home/andrea/Desktop/BA_R/" # root path directory
 
 MODIS_PATH = MY_PATH + 'MODIS/{product}/{year}/{tile}/'  # Where to put modis tile images
 # Place raster modis for the projection, resampling ....
@@ -39,7 +39,7 @@ dem_name = '/home/andrea/Desktop/BA_R/t/DEM/h19v07/dem.tif'
 landcover_name = 'land_cover_300m-h19v07.tif'
 tile = 'h19v07'
 year = 2019
-band = 'nir'
+band = 'red'
 dst_crs = 'EPSG:4326'
 resampling_method = 'nearest'
 # image_tile is a csv file with year, day of the year and the name of modis images for the tiles corresponding to syn tile
@@ -54,7 +54,7 @@ window = 14
 ''' - - - - - - - - - - - - - Algorithm  - - - - - - - - - - - - -'''
 #####################################################################
 
-n_images = len(glob.glob(os.path.join(OUTPUT_PATH_MERGED, 'merged_*.npz')))
+
 
 output_shape = (3600, 3600)
 
@@ -63,30 +63,25 @@ slope = GenerateAttribute(dem_name, DemPath, attribute='slope')
 aspect = GenerateAttribute(dem_name, DemPath, attribute='aspect')
 hillshade = GenerateAttribute(dem_name, DemPath, attribute='hillshade')
 landcover = get_layer_tiff(os.path.join(DemPath, landcover_name))
-print('Attributes hechos')
+print('Attributes done')
 water = np.where(landcover == 210, 1, 0)
 NODATA = np.nan
 
-
+""" ModisProcessing: Load Modis sensors (MOD09GA and MYD09GA) bands data of interest. "doy" is the day of the year"""
 def ModisProcessing(doy):
-    # Load Modis sensors (MOD09GA and MYD09GA) bands data of interest
-
+    print("Start preprocessing MODIS sensors")
     process_nir_gq(2019, doy, sensor='MOD', layer="sur_refl_b06_1", img_tile=image_tile, input_path=MODIS_PATH,
                    modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_gq(2019, doy, sensor='MYD', layer="sur_refl_b06_1", img_tile=image_tile, input_path=MODIS_PATH,
                    modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
-    # process_nir_gq(2019, doy, sensor='MOD', layer='QC_250m_1', img_tile = image_tile, input_path = MODIS_PATH, modis_raster=MODIS_RASTER , output_path=MODIS_REPROJECTION, s3_file= S3_FILE)
-    # process_nir_gq(2019, doy, sensor='MYD', layer='QC_250m_1', img_tile = image_tile, input_path = MODIS_PATH, modis_raster=MODIS_RASTER , output_path=MODIS_REPROJECTION, s3_file= S3_FILE)
     process_nir_500m(2019, doy, sensor='MOD', layer='QC_500m_1', img_tile=image_tile, input_path=MODIS_PATH,
                      modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_500m(2019, doy, sensor='MYD', layer='QC_500m_1', img_tile=image_tile, input_path=MODIS_PATH,
                      modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
-
     process_nir_1km(2019, doy, sensor='MOD', layer='state_1km_1', img_tile=image_tile, input_path=MODIS_PATH,
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_1km(2019, doy, sensor='MYD', layer='state_1km_1', img_tile=image_tile, input_path=MODIS_PATH,
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
-
     process_nir_1km(2019, doy, sensor='MOD', layer='SensorZenith_1', img_tile=image_tile, input_path=MODIS_PATH,
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_1km(2019, doy, sensor='MOD', layer='SensorAzimuth_1', img_tile=image_tile, input_path=MODIS_PATH,
@@ -95,7 +90,6 @@ def ModisProcessing(doy):
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_1km(2019, doy, sensor='MOD', layer='SolarAzimuth_1', img_tile=image_tile, input_path=MODIS_PATH,
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
-
     process_nir_1km(2019, doy, sensor='MYD', layer='SensorZenith_1', img_tile=image_tile, input_path=MODIS_PATH,
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_1km(2019, doy, sensor='MYD', layer='SensorAzimuth_1', img_tile=image_tile, input_path=MODIS_PATH,
@@ -104,8 +98,7 @@ def ModisProcessing(doy):
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
     process_nir_1km(2019, doy, sensor='MYD', layer='SolarAzimuth_1', img_tile=image_tile, input_path=MODIS_PATH,
                     modis_raster=MODIS_RASTER, output_path=MODIS_REPROJECTION, s3_file=S3_FILE)
-
-
+    print("Finish preprocessing MODIS sensors")
 if __name__ == "__main__":
     import sys
 
@@ -129,15 +122,9 @@ if __name__ == "__main__":
             init = int(sys.argv[1]) - window // 2
             end = int(sys.argv[1]) + window // 2
             for i in range(init, end + 1):
-                print(
-                    OUTPUT_PATH_MERGED + 'images/merged_random_forest_{tile}_{band}_{year}_{day}.npz'.format(tile=tile,
-                                                                                                             band=band,
-                                                                                                             year=year,
-                                                                                                             day=i))
                 if not os.path.exists(
                         OUTPUT_PATH_MERGED + 'images/merged_random_forest_{tile}_{band}_{year}_{day}.npz'.format(
                                 tile=tile, band=band, year=year, day=i)):
-                    print(i)
                     ModisProcessing(i)
                     random_forest_models(year, i, tile=tile, s3_path=S3_PATH, modis_reprojected=MODIS_REPROJECTED,
                                          outputModel=OUTPUT_PATH_MERGED, DemPath=DemPath, LC=landcover_name)
@@ -147,9 +134,7 @@ if __name__ == "__main__":
             brdf_approach(i=int(sys.argv[1]), window=window, location=OUTPUT_PATH_MERGED, water=water, tile=tile,
                           year=year)
             print('finish brdf normalization')
-
             # save images in netCDF4 format
-
             f = netCDF4.Dataset(S3_FILE)
             # save netCDF4 file for brdf
             fn = OUTPUT_PATH_MERGED + 'brdf/brdf_merged_random_forest_{tile}_{band}_{year}_{day}.nc'.format(tile=tile,
@@ -188,7 +173,6 @@ if __name__ == "__main__":
             ds.close()
 
         f = netCDF4.Dataset(S3_FILE)
-
         fn = OUTPUT_PATH_MERGED + 'images/merged_random_forest_{tile}_{band}_{year}_{day}.nc'.format(tile=tile,
                                                                                                      band=band,
                                                                                                      year=year, day=int(
@@ -204,9 +188,6 @@ if __name__ == "__main__":
         lons = ds.createVariable('lon', 'f4', ('lon',))
 
         # fill
-        print("algo de variables")
-        # print(f.variables)
-        print(f.variables['lat'][:])
         lats[:] = f.variables['lat'][:]  # .data # get from syn
         lons[:] = f.variables['lon'][:]  # .data # get from syn
         # Variables
@@ -233,4 +214,4 @@ if __name__ == "__main__":
         saa[0, :, :] = dsa['saa']
         sza[0, :, :] = dsa['sza']
         ds.close()
-        print("vamooooos")
+        print("finished main")
